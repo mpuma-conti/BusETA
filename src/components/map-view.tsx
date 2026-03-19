@@ -1,9 +1,10 @@
 "use client";
 
-import { APIProvider, Map, AdvancedMarker, Polyline } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import config from "@/lib/config";
 import type { BusRoute, LatLng } from "@/lib/types";
-import Image from "next/image";
+import { Polyline } from "./google-maps-polyline";
+import { Bus, MapPin } from "lucide-react";
 
 type MapViewProps = {
   route: BusRoute | null;
@@ -28,23 +29,32 @@ export function MapView({ route, busLocation, center }: MapViewProps) {
         mapId="bus-eta-map"
         style={{ width: "100%", height: "100%" }}
         defaultCenter={center}
-        defaultZoom={12}
+        defaultZoom={13}
         gestureHandling={"greedy"}
         disableDefaultUI={true}
       >
         {route && (
           <>
-            <Polyline path={route.path} strokeColor="#3F51B5" strokeOpacity={0.8} strokeWeight={4} />
+            <Polyline 
+              path={route.path} 
+              strokeColor="#3F51B5" 
+              strokeOpacity={0.8} 
+              strokeWeight={6} 
+            />
             {route.stops.map((stop) => (
               <AdvancedMarker key={stop.id} position={stop.location} title={stop.name}>
-                 <Image src="/stop-icon.svg" alt={stop.name} width={24} height={24} />
+                 <div className="bg-white p-1 rounded-full border-2 border-primary shadow-md">
+                    <MapPin className="h-5 w-5 text-primary" />
+                 </div>
               </AdvancedMarker>
             ))}
           </>
         )}
         {busLocation && (
            <AdvancedMarker position={busLocation} title="Current Bus Location">
-             <Image src="/bus-icon.svg" alt="Bus Location" width={32} height={32} className="transition-all duration-1000 ease-linear" />
+             <div className="bg-accent p-2 rounded-full border-2 border-white shadow-lg animate-bounce">
+                <Bus className="h-6 w-6 text-white" />
+             </div>
            </AdvancedMarker>
         )}
       </Map>
