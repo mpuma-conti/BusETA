@@ -1,5 +1,7 @@
+
 "use client";
 
+import { memo } from "react";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import config from "@/lib/config";
 import type { BusRoute, LatLng } from "@/lib/types";
@@ -12,11 +14,30 @@ type MapViewProps = {
   center: LatLng;
 };
 
+// Memoize marker content to avoid getRootNode issues during rapid updates
+const StopMarker = memo(({ stop }: { stop: { name: string, location: LatLng } }) => (
+  <AdvancedMarker position={stop.location} title={stop.name}>
+     <div className="bg-white p-1 rounded-full border-2 border-primary shadow-md">
+        <MapPin className="h-5 w-5 text-primary" />
+     </div>
+  </AdvancedMarker>
+));
+StopMarker.displayName = 'StopMarker';
+
+const BusMarker = memo(({ location }: { location: LatLng }) => (
+  <AdvancedMarker position={location} title="Current Bus Location">
+    <div className="bg-accent p-2 rounded-full border-2 border-white shadow-lg animate-bounce">
+       <Bus className="h-6 w-6 text-white" />
+    </div>
+  </AdvancedMarker>
+));
+BusMarker.displayName = 'BusMarker';
+
 export function MapView({ route, busLocation, center }: MapViewProps) {
   if (!config.googleMapsApiKey) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-muted">
-        <p className="text-destructive-foreground bg-destructive p-4 rounded-md">
+        <p className="text-destructive-foreground bg-destructive p-4 rounded-md shadow-sm">
           Google Maps API Key is missing.
         </p>
       </div>
@@ -42,21 +63,11 @@ export function MapView({ route, busLocation, center }: MapViewProps) {
               strokeWeight={6} 
             />
             {route.stops.map((stop) => (
-              <AdvancedMarker key={stop.id} position={stop.location} title={stop.name}>
-                 <div className="bg-white p-1 rounded-full border-2 border-primary shadow-md">
-                    <MapPin className="h-5 w-5 text-primary" />
-                 </div>
-              </AdvancedMarker>
+              <StopMarker key={stop.id} stop={stop} />
             ))}
           </>
         )}
-        {busLocation && (
-           <AdvancedMarker position={busLocation} title="Current Bus Location">
-             <div className="bg-accent p-2 rounded-full border-2 border-white shadow-lg animate-bounce">
-                <Bus className="h-6 w-6 text-white" />
-             </div>
-           </AdvancedMarker>
-        )}
+        {busLocation && <BusMarker location={busLocation} />}
       </Map>
     </APIProvider>
   );
